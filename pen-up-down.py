@@ -4,14 +4,8 @@
 from xy.device import Device
 
 
-PENUP = 0
-PENDOWN = 1
-
-
 def main():
-
-  with Device() as device:
-
+  with Device(verbose=True) as device:
     i = 1
     while True:
       if i % 2 == 0:
@@ -24,8 +18,6 @@ def main():
       input('flip ...')
 
       i += 1
-
-    input('\n\ndone ...')
 
 
 if __name__ == '__main__':
