@@ -127,18 +127,13 @@ class Device(object):
     return num
 
   # def do_dots(self, dots, info_leap=10):
-  #
   #   t0 = time()
-  #
   #   num = len(dots)
-  #
   #   print('# dots: {:d}'.format(num))
-  #
   #   self._moves = 0
   #   flip = 0
   #
   #   for i, p in enumerate(dots):
-  #
   #     self.move(*p)
   #     self.pendown()
   #     self.penup()
@@ -155,20 +150,15 @@ class Device(object):
   #   self.penup()
 
   def do_paths(self, paths, info_leap=10):
-
     t0 = time()
-
     num = len(paths)
     moves = self._get_total_moves(paths)
-
     print('# paths: {:d}'.format(num))
     print('# moves: {:d}'.format(moves))
-
     self._moves = 0
     flip = 0
 
     for i, p in enumerate(paths):
-
       self.move(*p[0,:])
       self.pendown()
       flip += 1
@@ -182,7 +172,6 @@ class Device(object):
           print(s.format(self._moves, moves, per, tot, rem))
           flip = 0
         flip += 1
-
       self.penup()
 
     self.penup()

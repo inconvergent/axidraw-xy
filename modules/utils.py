@@ -5,21 +5,17 @@ from numpy import row_stack
 from glob import glob
 
 def get_bounding_box(xy):
-
   mi = xy.min(axis=0).squeeze()
   ma = xy.max(axis=0).squeeze()
   xd = ma[0]-mi[0]
   yd = ma[1]-mi[1]
-
   return mi, ma, xd, yd
 
 def print_values(mi, ma, xd, yd):
-
   print(('x: min {:0.08f} max {:0.08f} d {:0.08f}'.format(mi[0], ma[0], xd)))
   print(('y: min {:0.08f} max {:0.08f} d {:0.08f}'.format(mi[1], ma[1], yd)))
 
 def do_scale(xy):
-
   _,_,xd,yd = get_bounding_box(xy)
   xy/=max(xd,yd)
 
@@ -31,8 +27,7 @@ def get_paths_from_n_files(
     stride=1,
     scale=1,
     scale_to_fit=False
-  ):
-
+    ):
   from iutils.ioOBJ import load_2d as load
   from iutils.ddd import order_edges
   from iutils.ddd import get_mid_2d as get_mid
@@ -40,7 +35,6 @@ def get_paths_from_n_files(
   p = []
 
   for fn in sorted(glob(pattern))[skip:steps:stride]:
-
     print(fn)
     data = load(fn)
     vertices = data['vertices']
@@ -67,8 +61,7 @@ def get_paths_from_file(
     spatial_sort = True,
     spatial_concat = False,
     spatial_concat_eps = 1.e-9
-  ):
-
+    ):
   from iutils.ioOBJ import load_2d as load
   from iutils.ddd import get_mid_2d as get_mid
   from iutils.ddd import spatial_sort_2d as sort
@@ -99,8 +92,7 @@ def get_tris_from_file(
     spatial_sort = True,
     spatial_concat = False,
     spatial_concat_eps = 1.0e-9
-  ):
-
+    ):
   from iutils.ioOBJ import load_2d as load
   from iutils.ddd import get_mid_2d as get_mid
   from iutils.ddd import get_distinct_edges_from_tris
@@ -132,8 +124,7 @@ def get_edges_from_file(
     spatial_sort = True,
     spatial_concat = False,
     spatial_concat_eps = 1.0e-9
-  ):
-
+    ):
   from iutils.ioOBJ import load_2d as load
   from iutils.ddd import get_mid_2d as get_mid
   from iutils.ddd import spatial_sort_2d as sort
@@ -162,8 +153,7 @@ def get_dots_from_file(
     fn,
     smax,
     spatial_sort = True,
-  ):
-
+    ):
   from iutils.ioOBJ import load_2d as load
   from iutils.ddd import get_mid_2d as get_mid
   from iutils.ddd import spatial_sort_dots_2d as sort
