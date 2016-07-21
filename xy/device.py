@@ -10,9 +10,14 @@ HEADERS = {
     'Content-Type': 'application/json'
     }
 
+# TODO: this is unlikely to work well for non-square drawings
+# note that API accepts x/y positions in percentage of total plottable width/height
 WIDTH = 12000.0
 HEIGHT = 8720.0
 ASPECT = HEIGHT/WIDTH
+
+PEN_URL = '/v1/pen'
+BOT_SETTINGS_URL = '/v1/settings/bot'
 
 
 class Device(object):
@@ -24,22 +29,27 @@ class Device(object):
       host = 'http://localhost:4242',
       pen_elevation_delay = 0.2,
       pen_delay = 0.0,
+      drawing_speed = 7,
+      moving_speed = 30,
       verbose = False
       ):
-    self._penup = penup
-    self._pendown = pendown
+    self._penup = float(penup)
+    self._pendown = float(pendown)
     self._host = host
-    self._pen_url = host + '/v1/pen'
-    self._bot_settings_url = host + '/v1/settings/bot'
-    self._pen_elevation_delay = pen_elevation_delay
-    self._pen_delay = pen_delay
+    self._pen_url = host + PEN_URL
+    self._bot_settings_url = host + BOT_SETTINGS_URL
+    self._pen_elevation_delay = float(pen_elevation_delay)
+    self._pen_delay = float(pen_delay)
+
+    self._drawing_speed = int(drawing_speed)
+    self._moving_speed = int(moving_speed)
+
     self.verbose = verbose
 
-    self._moves = 0
-
+    self._settings()
     self.penup()
 
-    self._defaults()
+    self._moves = 0
 
   def __enter__(self):
     input('enter to start ...')
@@ -49,9 +59,25 @@ class Device(object):
     self.penup()
     self.move(0, 0)
 
-  def _defaults(self):
+  def _settings(self):
     self._cmd(
-        {'speed:drawing': 10},
+        {'speed:drawing': self._drawing_speed},
+        self._bot_settings_url
+        )
+    self._cmd(
+        {'speed:precision': 2},
+        self._bot_settings_url
+        )
+    self._cmd(
+        {'speed:min': 200},
+        self._bot_settings_url
+        )
+    self._cmd(
+        {'speed:max': 8000},
+        self._bot_settings_url
+        )
+    self._cmd(
+        {'speed:moving': self._moving_speed},
         self._bot_settings_url
         )
 
@@ -60,10 +86,8 @@ class Device(object):
     post = jsn.encode('utf-8')
     req = urllib.request.Request(url, data=post, headers=HEADERS, method='PUT')
     with urllib.request.urlopen(req) as res:
-      status = res.status
-      # reason = res.reason
-      if status != 200:
-        print('WARNING: error status'+str(res.status)+res.reason)
+      if res.status != 200:
+        print('WARNING: error status ' + str(res.status) + ' ' + str(res.reason))
       a = json.loads(res.readall().decode('utf-8'))
       if self.verbose:
         print(json.dumps(a, sort_keys=True, indent=2))
