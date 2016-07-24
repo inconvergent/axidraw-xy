@@ -20,6 +20,7 @@ ASPECT = HEIGHT/WIDTH
 
 PEN_URL = '/v1/pen'
 BOT_SETTINGS_URL = '/v1/settings/bot'
+BUFFER_URL = '/v1/buffer'
 
 
 class Device(object):
@@ -36,8 +37,10 @@ class Device(object):
     self._penup = float(penup)
     self._pendown = float(pendown)
     self._host = host
+
     self._pen_url = host + PEN_URL
     self._bot_settings_url = host + BOT_SETTINGS_URL
+    self._buffer_url = host + BUFFER_URL
 
     self._drawing_speed = int(drawing_speed)
     self._moving_speed = int(moving_speed) # TODO: this does not nothing atm?
@@ -79,6 +82,15 @@ class Device(object):
         self._bot_settings_url
         )
 
+  def _cmd_del(self, url):
+    req = urllib.request.Request(url, method='DELETE')
+    with urllib.request.urlopen(req) as res:
+      if res.status != 200:
+        print('WARNING: error status ' + str(res.status) + ' ' + str(res.reason))
+      a = json.loads(res.readall().decode('utf-8'))
+      if self.verbose:
+        print(json.dumps(a, sort_keys=True, indent=2))
+
   def _cmd(self, d, url):
     jsn = json.dumps(d)
     post = jsn.encode('utf-8')
@@ -115,8 +127,12 @@ class Device(object):
 
     return txy
 
-  def move(self, xy):
+  def reset(self):
+    self._cmd_del(self._buffer_url)
+    self.penup()
+    self.move(array([0,0], 'float'))
 
+  def move(self, xy):
     self._moves += 1
     txy = self._xy_transform(xy)
     self._cmd(
@@ -144,8 +160,7 @@ class Device(object):
       num += len(p)-1
     return num
 
-  def do_paths(self, paths, info_leap=10):
-    # t0 = time()
+  def do_paths(self, paths, info_leap=200):
     num = len(paths)
     moves = self._get_total_moves(paths)
     print('# paths: {:d}'.format(num))
@@ -163,8 +178,6 @@ class Device(object):
         self.move(xy)
         if flip > info_leap:
           per = self._moves/float(moves)
-          # tot = (time()-t0)/3600.
-          # rem = tot/per - tot
           s = 'progress: {:d}/{:d} ({:3.03f})'
           print(s.format(self._moves, moves, per))
           flip = 0
