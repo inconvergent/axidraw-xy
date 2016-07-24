@@ -2,7 +2,6 @@
 
 from numpy import array
 from numpy import row_stack
-from glob import glob
 
 def get_bounding_box(xy):
   mi = xy.min(axis=0).squeeze()
@@ -18,42 +17,6 @@ def print_values(mi, ma, xd, yd):
 def do_scale(xy):
   _,_,xd,yd = get_bounding_box(xy)
   xy/=max(xd,yd)
-
-def get_paths_from_n_files(
-    pattern,
-    smax,
-    skip=0,
-    steps=1,
-    stride=1,
-    scale=1,
-    scale_to_fit=False
-    ):
-  from iutils.ioOBJ import load_2d as load
-  from iutils.ddd import order_edges
-  from iutils.ddd import get_mid_2d as get_mid
-
-  p = []
-
-  for fn in sorted(glob(pattern))[skip:steps:stride]:
-    print(fn)
-    data = load(fn)
-    vertices = data['vertices']
-
-    if scale_to_fit:
-      vertices -= get_mid(vertices)
-      do_scale(vertices)
-      vertices += array([[0.5]*2])
-      vertices[:,:] *= smax
-      print('scaled size:')
-      print_values(*get_bounding_box(vertices))
-    else:
-      vertices[:,:] *= smax*scale
-
-    edges = data['edges']
-    _,v_ordered = order_edges(edges)
-    p.append(vertices[v_ordered,:])
-
-  return p
 
 def get_paths_from_file(
     fn,

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 
-from time import sleep
 from time import time
+from numpy import array
+from numpy import logical_or
+from numpy import isclose
 import urllib.request
 import json
 
@@ -27,8 +29,6 @@ class Device(object):
       penup = 0.5,
       pendown = 1,
       host = 'http://localhost:4242',
-      pen_elevation_delay = 0.2,
-      pen_delay = 0.0,
       drawing_speed = 7,
       moving_speed = 30,
       verbose = False
@@ -38,11 +38,9 @@ class Device(object):
     self._host = host
     self._pen_url = host + PEN_URL
     self._bot_settings_url = host + BOT_SETTINGS_URL
-    self._pen_elevation_delay = float(pen_elevation_delay)
-    self._pen_delay = float(pen_delay)
 
     self._drawing_speed = int(drawing_speed)
-    self._moving_speed = int(moving_speed)
+    self._moving_speed = int(moving_speed) # TODO: this does not nothing atm?
 
     self.verbose = verbose
 
@@ -57,7 +55,7 @@ class Device(object):
 
   def __exit__(self,*arg, **args):
     self.penup()
-    self.move(0, 0)
+    self.move(array([0,0], 'float'))
 
   def _settings(self):
     self._cmd(
@@ -92,27 +90,47 @@ class Device(object):
       if self.verbose:
         print(json.dumps(a, sort_keys=True, indent=2))
 
-  def move(self, x, y):
-    if x>1.0 or x<0.0 or y>1.0 or y<0.0:
-      raise ValueError('bad pen position.')
+  def _xy_transform(self, xy):
+    txy = xy*array([ASPECT, 1.0], 'float')*100.0
+
+    # TODO: this is a bit overzealous. consider improving.
+
+    if any(txy>100.0):
+      print('WARN: value greater than 100. correcting')
+      mask = isclose(txy, 100.0)
+      txy[mask] = 100.0
+      if any(txy>100.0):
+        print('offending value:')
+        print(txy)
+        raise ValueError('unable to correct error. aborting.')
+
+    if any(txy<0.0):
+      print('WARN: value less than 0. correcting.')
+      mask = isclose(txy, 0.0)
+      txy[mask] = 0.0
+      if any(txy<0.0):
+        print('offending value:')
+        print(txy)
+        raise ValueError('unable to correct error. aborting.')
+
+    return txy
+
+  def move(self, xy):
 
     self._moves += 1
-    sleep(self._pen_delay)
+    txy = self._xy_transform(xy)
     self._cmd(
-        {'x': x*ASPECT*100.0, 'y': y*100.0},
+        {'x': txy[0], 'y': txy[1]},
         self._pen_url
         )
 
   def pen(self, position):
     if position>1.0 or position<0.0:
       raise ValueError('bad pen elevation.')
-
-    sleep(self._pen_elevation_delay)
     self._cmd(
         {'state': position},
         self._pen_url
         )
-    sleep(self._pen_elevation_delay)
 
   def penup(self):
     self.pen(self._penup)
@@ -126,31 +144,8 @@ class Device(object):
       num += len(p)-1
     return num
 
-  # def do_dots(self, dots, info_leap=10):
-  #   t0 = time()
-  #   num = len(dots)
-  #   print('# dots: {:d}'.format(num))
-  #   self._moves = 0
-  #   flip = 0
-  #
-  #   for i, p in enumerate(dots):
-  #     self.move(*p)
-  #     self.pendown()
-  #     self.penup()
-  #     flip += 1
-  #     if flip > info_leap:
-  #       per = i/float(num)
-  #       tot = (time()-t0)/3600.
-  #       rem = tot/per - tot
-  #       s = 'progress: {:d}/{:d} ({:3.03f}) run time: {:0.05f} hrs, remaining: {:0.05f} hrs'
-  #       print(s.format(i, num, per, tot, rem))
-  #       flip = 0
-  #     flip += 1
-  #
-  #   self.penup()
-
   def do_paths(self, paths, info_leap=10):
-    t0 = time()
+    # t0 = time()
     num = len(paths)
     moves = self._get_total_moves(paths)
     print('# paths: {:d}'.format(num))
@@ -158,18 +153,20 @@ class Device(object):
     self._moves = 0
     flip = 0
 
+    print('\nNOTE: displayed progress is currently only calcuated on transferring data to the device buffer.\n')
+
     for i, p in enumerate(paths):
-      self.move(*p[0,:])
+      self.move(p[0,:])
       self.pendown()
       flip += 1
       for xy in p[1:,:]:
-        self.move(*xy)
+        self.move(xy)
         if flip > info_leap:
           per = self._moves/float(moves)
-          tot = (time()-t0)/3600.
-          rem = tot/per - tot
-          s = 'progress: {:d}/{:d} ({:3.03f}) run time: {:0.05f} hrs, remaining: {:0.05f} hrs'
-          print(s.format(self._moves, moves, per, tot, rem))
+          # tot = (time()-t0)/3600.
+          # rem = tot/per - tot
+          s = 'progress: {:d}/{:d} ({:3.03f})'
+          print(s.format(self._moves, moves, per))
           flip = 0
         flip += 1
       self.penup()
