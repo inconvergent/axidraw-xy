@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from time import time
 from numpy import array
-from numpy import logical_or
 from numpy import isclose
 import urllib.request
 import json
@@ -27,6 +25,7 @@ class Device(object):
 
   def __init__(
       self,
+      scale = 1.0,
       penup = 0.5,
       pendown = 1,
       host = 'http://localhost:4242',
@@ -34,6 +33,7 @@ class Device(object):
       moving_speed = 30,
       verbose = False
       ):
+    self._scale = float(scale)
     self._penup = float(penup)
     self._pendown = float(pendown)
     self._host = host
@@ -103,7 +103,7 @@ class Device(object):
         print(json.dumps(a, sort_keys=True, indent=2))
 
   def _xy_transform(self, xy):
-    txy = xy*array([ASPECT, 1.0], 'float')*100.0
+    txy = xy*array([ASPECT, 1.0], 'float')*100.0*self._scale
 
     # TODO: this is a bit overzealous. consider improving.
 

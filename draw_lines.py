@@ -9,9 +9,9 @@ def main(args):
   from modules.utils import get_paths_from_file as get
 
   fn = args.fn
-  paths = get(fn, 0.99, spatial_concat=True, spatial_concat_eps=1e-4)
+  paths = get(fn, spatial_concat=True, spatial_concat_eps=1e-4)
 
-  with Device(penup=0.4) as device:
+  with Device(scale=0.99, penup=0.4) as device:
     device.do_paths(paths)
 
 

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+
 from numpy import array
 from numpy import row_stack
+
 
 def get_bounding_box(xy):
   mi = xy.min(axis=0).squeeze()
@@ -16,17 +18,21 @@ def print_values(mi, ma, xd, yd):
 
 def do_scale(xy):
   _,_,xd,yd = get_bounding_box(xy)
-  xy/=max(xd,yd)
+  xy /= max(xd,yd)
+
+def fit(vertices):
+  from iutils.ddd import get_mid_2d as get_mid
+  vertices -= get_mid(vertices)
+  do_scale(vertices)
+  vertices[:,:] += array([[0.5]*2])
 
 def get_paths_from_file(
     fn,
-    smax,
     spatial_sort = True,
     spatial_concat = False,
     spatial_concat_eps = 1.e-9
     ):
   from iutils.ioOBJ import load_2d as load
-  from iutils.ddd import get_mid_2d as get_mid
   from iutils.ddd import spatial_sort_2d as sort
   from iutils.ddd import spatial_concat_2d as concat
 
@@ -34,11 +40,7 @@ def get_paths_from_file(
   vertices = data['vertices']
   lines = data['lines']
 
-  vertices -= get_mid(vertices)
-  do_scale(vertices)
-  vertices += array([[0.5]*2])
-  vertices[:,:] *= smax
-
+  fit(vertices)
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
@@ -46,18 +48,15 @@ def get_paths_from_file(
 
   paths = sort(paths) if spatial_sort else paths
   paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
-
   return paths
 
 def get_tris_from_file(
     fn,
-    smax,
     spatial_sort = True,
     spatial_concat = False,
     spatial_concat_eps = 1.0e-9
     ):
   from iutils.ioOBJ import load_2d as load
-  from iutils.ddd import get_mid_2d as get_mid
   from iutils.ddd import get_distinct_edges_from_tris
   from iutils.ddd import spatial_sort_2d as sort
   from iutils.ddd import spatial_concat_2d as concat
@@ -65,11 +64,7 @@ def get_tris_from_file(
   data = load(fn)
   vertices = data['vertices']
 
-  vertices -= get_mid(vertices)
-  do_scale(vertices)
-  vertices += array([[0.5]*2])
-  vertices[:,:] *= smax
-
+  fit(vertices)
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
@@ -83,24 +78,18 @@ def get_tris_from_file(
 
 def get_edges_from_file(
     fn,
-    smax,
     spatial_sort = True,
     spatial_concat = False,
     spatial_concat_eps = 1.0e-9
     ):
   from iutils.ioOBJ import load_2d as load
-  from iutils.ddd import get_mid_2d as get_mid
   from iutils.ddd import spatial_sort_2d as sort
   from iutils.ddd import spatial_concat_2d as concat
 
   data = load(fn)
   vertices = data['vertices']
 
-  vertices -= get_mid(vertices)
-  do_scale(vertices)
-  vertices += array([[0.5]*2])
-  vertices[:,:] *= smax
-
+  fit(vertices)
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
@@ -109,33 +98,23 @@ def get_edges_from_file(
 
   paths = sort(paths) if spatial_sort else paths
   paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
-
   return paths
 
 def get_dots_from_file(
     fn,
-    smax,
     spatial_sort = True,
     ):
   from iutils.ioOBJ import load_2d as load
-  from iutils.ddd import get_mid_2d as get_mid
   from iutils.ddd import spatial_sort_dots_2d as sort
 
   data = load(fn)
   vertices = data['vertices']
 
-  mid = get_mid(vertices)
-  vertices -= mid
-  do_scale(vertices)
-  vertices += array([[0.5]*2])
-  vertices[:,:] *= smax
-
+  fit(vertices)
   dots = vertices
-
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
   dots = sort(dots) if spatial_sort else dots
-
   return dots
 
