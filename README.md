@@ -8,8 +8,8 @@ https://github.com/techninja/cncserver
 
 ## Requires
 
- - For some path optimization and for reading my simple vector format:
-   https://github.com/inconvergent/iutils
+  - numpy
+  - scipy
 
 ## Example
 
