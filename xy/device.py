@@ -87,7 +87,10 @@ class Device(object):
     with urllib.request.urlopen(req) as res:
       if res.status != 200:
         print('WARNING: error status ' + str(res.status) + ' ' + str(res.reason))
-      a = json.loads(res.readall().decode('utf-8'))
+      # Convert from bytes to text
+      resp_text = res.read().decode('UTF-8')
+      # Use loads to decode from text
+      a = json.loads(resp_text)
       if self.verbose:
         print(json.dumps(a, sort_keys=True, indent=2))
 
@@ -98,7 +101,10 @@ class Device(object):
     with urllib.request.urlopen(req) as res:
       if res.status != 200:
         print('WARNING: error status ' + str(res.status) + ' ' + str(res.reason))
-      a = json.loads(res.readall().decode('utf-8'))
+      # Convert from bytes to text
+      resp_text = res.read().decode('UTF-8')
+      # Use loads to decode from text
+      a = json.loads(resp_text)
       if self.verbose:
         print(json.dumps(a, sort_keys=True, indent=2))
 
