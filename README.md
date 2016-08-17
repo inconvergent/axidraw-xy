@@ -8,6 +8,7 @@ https://github.com/techninja/cncserver
 
 ## Requires
 
+  - python 3
   - numpy
   - scipy
 
