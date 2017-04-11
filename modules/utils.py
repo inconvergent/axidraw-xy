@@ -15,23 +15,23 @@ def print_values(mi, ma, xd, yd):
   print(('y: min {:0.08f} max {:0.08f} d {:0.08f}'.format(mi[1], ma[1], yd)))
 
 def do_scale(xy):
-  _,_,xd,yd = get_bounding_box(xy)
-  xy /= max(xd,yd)
+  _, _, xd, yd = get_bounding_box(xy)
+  xy /= max(xd, yd)
 
 def fit(vertices):
   from modules.ddd import get_mid_2d as get_mid
   vertices -= get_mid(vertices)
   do_scale(vertices)
-  vertices[:,:] += array([[0.5]*2])
+  vertices[:, :] += array([[0.5]*2])
 
 def get_paths_from_n_files(
     pattern,
     skip=0,
     steps=1,
     stride=1,
-    spatial_sort = True,
-    spatial_concat = False,
-    spatial_concat_eps = 1.e-9
+    spatial_sort=True,
+    spatial_concat=False,
+    spatial_concat_eps=1.e-9
     ):
   from glob import glob
   from modules.ioOBJ import load_2d as load
@@ -60,7 +60,7 @@ def get_paths_from_n_files(
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
-  paths = [row_stack(vertices[li,:]) for li in lines]
+  paths = [row_stack(vertices[li, :]) for li in lines]
 
   paths = sort(paths) if spatial_sort else paths
   paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
@@ -69,9 +69,9 @@ def get_paths_from_n_files(
 
 def get_paths_from_file(
     fn,
-    spatial_sort = True,
-    spatial_concat = False,
-    spatial_concat_eps = 1.e-9
+    spatial_sort=True,
+    spatial_concat=False,
+    spatial_concat_eps=1.e-9
     ):
   from modules.ioOBJ import load_2d as load
   from modules.ddd import spatial_sort_2d as sort
@@ -85,7 +85,7 @@ def get_paths_from_file(
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
-  paths = [row_stack(vertices[l,:]) for l in lines]
+  paths = [row_stack(vertices[l, :]) for l in lines]
 
   paths = sort(paths) if spatial_sort else paths
   paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
@@ -93,9 +93,9 @@ def get_paths_from_file(
 
 def get_tris_from_file(
     fn,
-    spatial_sort = True,
-    spatial_concat = False,
-    spatial_concat_eps = 1.0e-9
+    spatial_sort=True,
+    spatial_concat=False,
+    spatial_concat_eps=1.0e-9
     ):
   from modules.ioOBJ import load_2d as load
   from modules.ddd import get_distinct_edges_from_tris
@@ -110,11 +110,29 @@ def get_tris_from_file(
   print_values(*get_bounding_box(vertices))
 
   edges = get_distinct_edges_from_tris(data['faces'])
-  paths = [row_stack(p) for p in vertices[edges,:]]
+  paths = [row_stack(p) for p in vertices[edges, :]]
 
   paths = sort(paths) if spatial_sort else paths
   paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
   return paths
+
+def get_dots_from_file(
+    fn,
+    spatial_sort=True,
+    ):
+  from modules.ioOBJ import load_2d as load
+  from modules.ddd import spatial_sort_dots_2d as sort
+
+  data = load(fn)
+  vertices = data['vertices']
+
+  fit(vertices)
+  dots = vertices
+  print('scaled size:')
+  print_values(*get_bounding_box(vertices))
+
+  dots = sort(dots) if spatial_sort else dots
+  return dots
 
 # TODO: do we need this?
 # def get_edges_from_file(
@@ -140,23 +158,4 @@ def get_tris_from_file(
 #   paths = sort(paths) if spatial_sort else paths
 #   paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
 #   return paths
-
-# TODO: implement draw_dots.py in root. test this.
-# def get_dots_from_file(
-#     fn,
-#     spatial_sort = True,
-#     ):
-#   from ioOBJ import load_2d as load
-#   from ddd import spatial_sort_dots_2d as sort
-#
-#   data = load(fn)
-#   vertices = data['vertices']
-#
-#   fit(vertices)
-#   dots = vertices
-#   print('scaled size:')
-#   print_values(*get_bounding_box(vertices))
-#
-#   dots = sort(dots) if spatial_sort else dots
-#   return dots
 

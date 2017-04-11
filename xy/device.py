@@ -176,11 +176,11 @@ class Device(object):
 
     print('\nNOTE: displayed progress is currently only calcuated on transferring data to the device buffer.\n')
 
-    for i, p in enumerate(paths):
-      self.move(p[0,:])
+    for p in paths:
+      self.move(p[0, :])
       self.pendown()
       flip += 1
-      for xy in p[1:,:]:
+      for xy in p[1:, :]:
         self.move(xy)
         if flip > info_leap:
           per = self._moves/float(moves)
@@ -189,6 +189,29 @@ class Device(object):
           flip = 0
         flip += 1
       self.penup()
+
+    self.penup()
+
+  def do_dots(self, dots, info_leap=200):
+    num = len(dots)
+    moves = num
+    print('# dots: {:d}'.format(num))
+    print('# moves: {:d}'.format(moves))
+    self._moves = 0
+    flip = 0
+
+    print('\nNOTE: displayed progress is currently only calcuated on transferring data to the device buffer.\n')
+
+    for xy in dots:
+      self.move(xy)
+      self.pendown()
+      self.penup()
+      flip += 2
+      if flip > info_leap:
+        per = self._moves/float(moves)
+        s = 'progress: {:d}/{:d} ({:3.03f})'
+        print(s.format(self._moves, moves, per))
+        flip = 0
 
     self.penup()
 
