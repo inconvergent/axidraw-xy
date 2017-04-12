@@ -134,28 +134,28 @@ def get_dots_from_file(
   dots = sort(dots) if spatial_sort else dots
   return dots
 
-# TODO: do we need this?
-# def get_edges_from_file(
-#     fn,
-#     spatial_sort = True,
-#     spatial_concat = False,
-#     spatial_concat_eps = 1.0e-9
-#     ):
-#   from modules.ioOBJ import load_2d as load
-#   from modules.ddd import spatial_sort_2d as sort
-#   from modules.ddd import spatial_concat_2d as concat
-#
-#   data = load(fn)
-#   vertices = data['vertices']
-#
-#   fit(vertices)
-#   print('scaled size:')
-#   print_values(*get_bounding_box(vertices))
-#
-#   edges = data['edges']
-#   paths = [row_stack(p) for p in vertices[edges,:]]
-#
-#   paths = sort(paths) if spatial_sort else paths
-#   paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
-#   return paths
+def get_edges_from_file(
+    fn,
+    spatial_sort=True,
+    spatial_concat=False,
+    spatial_concat_eps=1.0e-9
+    ):
+  from modules.ioOBJ import load_2d as load
+  from modules.ddd import spatial_sort_2d as sort
+  from modules.ddd import spatial_concat_2d as concat
+
+  data = load(fn)
+  vertices = data['vertices']
+
+  fit(vertices)
+  print('scaled size:')
+  print_values(*get_bounding_box(vertices))
+
+  edges = data['edges']
+  paths = [row_stack(p) for p in vertices[edges, :]]
+
+  paths = sort(paths) if spatial_sort else paths
+  paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
+  print('edges: ', len(paths))
+  return paths
 
