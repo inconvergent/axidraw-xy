@@ -3,8 +3,12 @@
 
 from numpy import array
 from numpy import isclose
+from numpy import row_stack
 import urllib.request
 import json
+
+from modules.utils import print_values
+from modules.utils import get_bounding_box
 
 HEADERS = {
     'Content-Type': 'application/json'
@@ -25,13 +29,13 @@ class Device(object):
 
   def __init__(
       self,
-      scale = 1.0,
-      penup = 0.5,
-      pendown = 1,
-      host = 'http://localhost:4242',
-      drawing_speed = 7,
-      moving_speed = 30,
-      verbose = False
+      scale=1.0,
+      penup=0.5,
+      pendown=1,
+      host='http://localhost:4242',
+      drawing_speed=7,
+      moving_speed=30,
+      verbose=False
       ):
     self._scale = float(scale)
     self._penup = float(penup)
@@ -51,14 +55,16 @@ class Device(object):
     self.penup()
 
     self._moves = 0
+    self._history = []
 
   def __enter__(self):
     input('enter to start ...')
     return self
 
-  def __exit__(self,*arg, **args):
+  def __exit__(self, *arg, **args):
     self.penup()
-    self.move(array([0,0], 'float'))
+    self.move(array([0, 0], 'float'))
+    print_values(*get_bounding_box(row_stack(self._history)))
 
   def _settings(self):
     self._cmd(
@@ -113,30 +119,33 @@ class Device(object):
 
     # TODO: this is a bit overzealous. consider improving.
 
-    if any(txy>100.0):
-      print('WARN: value greater than 100. correcting')
+    if any(txy > 100.0):
+      print('WARNING: value greater than 100. correcting {:s}'.format(str(txy)))
       mask = isclose(txy, 100.0)
       txy[mask] = 100.0
-      if any(txy>100.0):
+      print('WARNING: corrected to {:s}'.format(str(txy)))
+      if any(txy > 100.0):
         print('offending value:')
         print(txy)
         raise ValueError('unable to correct error. aborting.')
 
-    if any(txy<0.0):
-      print('WARN: value less than 0. correcting.')
+    if any(txy < 0.0):
+      print('WARNING: value less than 0. correcting: {:s}'.format(str(txy)))
       mask = isclose(txy, 0.0)
       txy[mask] = 0.0
-      if any(txy<0.0):
+      print('WARNING: corrected to {:s}'.format(str(txy)))
+      if any(txy < 0.0):
         print('offending value:')
         print(txy)
         raise ValueError('unable to correct error. aborting.')
 
+    self._history.append(txy)
     return txy
 
   def reset(self):
     self._cmd_del(self._buffer_url)
     self.penup()
-    self.move(array([0,0], 'float'))
+    self.move(array([0, 0], 'float'))
 
   def move(self, xy):
     self._moves += 1
@@ -147,7 +156,7 @@ class Device(object):
         )
 
   def pen(self, position):
-    if position>1.0 or position<0.0:
+    if position > 1.0 or position < 0.0:
       raise ValueError('bad pen elevation.')
     self._cmd(
         {'state': position},

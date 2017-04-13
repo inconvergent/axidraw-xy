@@ -20,9 +20,12 @@ def do_scale(xy):
 
 def fit(vertices):
   from modules.ddd import get_mid_2d as get_mid
-  vertices -= get_mid(vertices)
+  mid = get_mid(vertices)
+  vertices -= mid
   do_scale(vertices)
+  mid = get_mid(vertices)
   vertices[:, :] += array([[0.5]*2])
+  mid = get_mid(vertices)
 
 def get_paths_from_n_files(
     pattern,
@@ -56,7 +59,11 @@ def get_paths_from_n_files(
 
   vertices = row_stack(vertices)
 
+  print('orig size:')
+  print_values(*get_bounding_box(vertices))
+
   fit(vertices)
+
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
@@ -81,7 +88,11 @@ def get_paths_from_file(
   vertices = data['vertices']
   lines = data['lines']
 
+  print('orig size:')
+  print_values(*get_bounding_box(vertices))
+
   fit(vertices)
+
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
@@ -105,7 +116,11 @@ def get_tris_from_file(
   data = load(fn)
   vertices = data['vertices']
 
+  print('orig size:')
+  print_values(*get_bounding_box(vertices))
+
   fit(vertices)
+
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
@@ -126,13 +141,17 @@ def get_dots_from_file(
   data = load(fn)
   vertices = data['vertices']
 
+  print('orig size:')
+  print_values(*get_bounding_box(vertices))
+
   fit(vertices)
-  dots = vertices
+
   print('scaled size:')
   print_values(*get_bounding_box(vertices))
 
-  dots = sort(dots) if spatial_sort else dots
-  return dots
+  vertices = sort(vertices) if spatial_sort else vertices
+  print('dots: ', len(vertices))
+  return vertices
 
 def get_edges_from_file(
     fn,
@@ -146,6 +165,9 @@ def get_edges_from_file(
 
   data = load(fn)
   vertices = data['vertices']
+
+  print('orig size:')
+  print_values(*get_bounding_box(vertices))
 
   fit(vertices)
   print('scaled size:')
