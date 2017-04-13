@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from time import sleep
 from numpy import array
 from numpy import isclose
 from numpy import row_stack
@@ -45,6 +46,7 @@ class Device(object):
     self._pen_url = host + PEN_URL
     self._bot_settings_url = host + BOT_SETTINGS_URL
     self._buffer_url = host + BUFFER_URL
+    self._buffer_sleep = 5
 
     self._drawing_speed = int(drawing_speed)
     self._moving_speed = int(moving_speed) # TODO: this does not nothing atm?
@@ -59,12 +61,14 @@ class Device(object):
 
   def __enter__(self):
     input('enter to start ...')
+    print('\nshowing progress on transferring data to the device buffer.\n')
     return self
 
   def __exit__(self, *arg, **args):
     self.penup()
     self.move(array([0, 0], 'float'))
     print_values(*get_bounding_box(row_stack(self._history)))
+    self._show_buffer()
 
   def _settings(self):
     self._cmd(
@@ -87,6 +91,25 @@ class Device(object):
         {'speed:moving': self._moving_speed},
         self._bot_settings_url
         )
+
+  def _show_buffer(self):
+    print('now displaying buffer progress:')
+
+    last = 0
+    while True:
+      sleep(self._buffer_sleep)
+      buf = self._info(self._buffer_url)
+      try:
+        c = int(buf['count'])
+      except Exception:
+        c = 0
+
+      if c <= 0:
+        break
+
+      print('buffer: {:d}, df: {:d}'.format(c, last-c))
+      last = c
+
 
   def _cmd_del(self, url):
     req = urllib.request.Request(url, method='DELETE')
@@ -113,6 +136,18 @@ class Device(object):
       a = json.loads(resp_text)
       if self.verbose:
         print(json.dumps(a, sort_keys=True, indent=2))
+
+  def _info(self, url):
+    req = urllib.request.Request(url, method='GET')
+    with urllib.request.urlopen(req) as res:
+      if res.status != 200:
+        print('WARNING: error status ' + str(res.status) + ' ' + str(res.reason))
+      # Convert from bytes to text
+      resp_text = res.read().decode('UTF-8')
+      # Use loads to decode from text
+      a = json.loads(resp_text)
+      return a
+    return None
 
   def _xy_transform(self, xy):
     txy = xy*array([ASPECT, 1.0], 'float')*100.0*self._scale
@@ -183,8 +218,6 @@ class Device(object):
     self._moves = 0
     flip = 0
 
-    print('\nNOTE: displayed progress is currently only calcuated on transferring data to the device buffer.\n')
-
     for p in paths:
       self.move(p[0, :])
       self.pendown()
@@ -208,8 +241,6 @@ class Device(object):
     print('# moves: {:d}'.format(moves))
     self._moves = 0
     flip = 0
-
-    print('\nNOTE: displayed progress is currently only calcuated on transferring data to the device buffer.\n')
 
     for xy in dots:
       self.move(xy)
