@@ -2,6 +2,7 @@
 
 
 from time import sleep
+from time import strftime
 from numpy import array
 from numpy import isclose
 from numpy import row_stack
@@ -107,9 +108,11 @@ class Device(object):
       if c <= 0:
         break
 
-      print('buffer: {:d}, df: {:d}'.format(c, last-c))
+      print('{:s} buffer: {:d}, df: {:d}'.format(self._ts(), c, last-c))
       last = c
 
+  def _ts(self):
+    return strftime('%Y-%m-%d %H:%M:%S')
 
   def _cmd_del(self, url):
     req = urllib.request.Request(url, method='DELETE')
@@ -226,8 +229,8 @@ class Device(object):
         self.move(xy)
         if flip > info_leap:
           per = self._moves/float(moves)
-          s = 'progress: {:d}/{:d} ({:3.03f})'
-          print(s.format(self._moves, moves, per))
+          s = '{:s} progress: {:d}/{:d} ({:3.03f})'
+          print(s.format(self._ts(), self._moves, moves, per))
           flip = 0
         flip += 1
       self.penup()
@@ -249,8 +252,8 @@ class Device(object):
       flip += 2
       if flip > info_leap:
         per = self._moves/float(moves)
-        s = 'progress: {:d}/{:d} ({:3.03f})'
-        print(s.format(self._moves, moves, per))
+        s = '{:s} progress: {:d}/{:d} ({:3.03f})'
+        print(s.format(self._ts(), self._moves, moves, per))
         flip = 0
 
     self.penup()
