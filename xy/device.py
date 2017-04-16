@@ -98,7 +98,6 @@ class Device(object):
 
     last = 0
     while True:
-      sleep(self._buffer_sleep)
       buf = self._info(self._buffer_url)
       try:
         c = int(buf['count'])
@@ -107,8 +106,9 @@ class Device(object):
 
       if c <= 0:
         break
-
       print('{:s} buffer: {:d}, df: {:d}'.format(self._ts(), c, last-c))
+
+      sleep(self._buffer_sleep)
       last = c
 
   def _ts(self):
