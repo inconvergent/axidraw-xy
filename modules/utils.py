@@ -1,7 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from numpy import array
+from numpy import column_stack
+from numpy import cos
+from numpy import linspace
+from numpy import pi
+from numpy import reshape
 from numpy import row_stack
+from numpy import sin
+from numpy import logical_or
+from numpy.random import random
+
+
+TWOPI = 2.0*pi
+
 
 def get_bounding_box(xy):
   mi = xy.min(axis=0).squeeze()
@@ -180,4 +192,34 @@ def get_edges_from_file(
   paths = concat(paths, spatial_concat_eps) if spatial_concat else paths
   print('edges: ', len(paths))
   return paths
+
+def dots_to_circs(verts, rad):
+  paths = []
+  n = int(rad*TWOPI*1000)
+
+  print('number of rad segments: {:d}'.format(n))
+
+  discard = 0
+
+  for xy in verts:
+    theta = random()*TWOPI + linspace(0, TWOPI*1.1, n)
+    if random() < 0.5:
+      theta[:] = theta[::-1]
+
+    c = reshape(xy, (1, 2)) +\
+      rad * column_stack([
+          cos(theta),
+          sin(theta)])
+
+    test = logical_or(c > 1.0, c < 0.0).sum(axis=0).sum()
+    if test == 0:
+      paths.append(c)
+    else:
+      discard += 1
+
+  print('discarded circles: {:d}'.format(discard))
+
+  return paths
+
+
 
